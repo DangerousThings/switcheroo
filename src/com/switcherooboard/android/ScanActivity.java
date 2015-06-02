@@ -18,6 +18,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -44,11 +45,11 @@ public class ScanActivity extends Activity implements OnItemClickListener {
 
     if (this.mScanTask != null) {
       ArrayList<Result> results = savedInstanceState.getParcelableArrayList("results");
-      this.mResultsAdapter = new ResultsAdapter(this, android.R.layout.simple_list_item_1, results);
+      this.mResultsAdapter = new ResultsAdapter(this, android.R.layout.simple_list_item_2, results);
     } else {
       this.mScanTask = new ScanTask(adapter);
       this.mScanTask.execute(null);
-      this.mResultsAdapter = new ResultsAdapter(this, android.R.layout.simple_list_item_1);
+      this.mResultsAdapter = new ResultsAdapter(this, android.R.layout.simple_list_item_2);
     }
 
     this.mScanTask.setResultsAdapter(this.mResultsAdapter);
@@ -118,13 +119,18 @@ public class ScanActivity extends Activity implements OnItemClickListener {
     }
 
     public ResultsAdapter(Context context, int resource, ArrayList<Result> objects) {
-      super(context, resource, 0, objects);
+      super(context, resource, android.R.id.text1, objects);
       this.mObjects = objects;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-      return super.getView(position, convertView, parent);
+      View view = super.getView(position, convertView, parent);
+
+      TextView text2 = (TextView) view.findViewById(android.R.id.text2);
+      text2.setText(this.getItem(position).device.getAddress());
+
+      return view;
     }
 
     public ArrayList<Result> getItems() {
