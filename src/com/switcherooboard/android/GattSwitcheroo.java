@@ -11,24 +11,31 @@ import android.os.Parcelable;
 
 import java.util.UUID;
 
-class GattSwitcheroo implements ISwitcheroo {
+class GattSwitcheroo extends Switcheroo {
     private static final String TAG = "GattSwitcheroo";
 
     private static final UUID SERVICE_UUID = UUID(15);
 
     private int mState;
-    private final String mAddress;
+
+    private final BluetoothDevice mBluetoohDevice;
+
     private BluetoothGatt mBluetoothGatt;
 
-    public GattSwitcheroo(String address) {
-        this.mAddress = address;
+    public GattSwitcheroo(BluetoothDevice device) {
+        this.mBluetoohDevice = device;
     }
 
     /* ISwitcheroo */
 
     @Override
+    public String getName() {
+      return this.mBluetoohDevice.getName();
+    }
+
+    @Override
     public String getAddress() {
-      return this.mAddress;
+      return this.mBluetoohDevice.getAddress();
     }
 
     @Override
@@ -39,9 +46,7 @@ class GattSwitcheroo implements ISwitcheroo {
 
         this.mState = BluetoothProfile.STATE_CONNECTING;
 
-        final BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(this.mAddress);
-
-        this.mBluetoothGatt = device.connectGatt(null, false, new BluetoothGattCallback() {
+        this.mBluetoothGatt = this.mBluetoohDevice.connectGatt(null, false, new BluetoothGattCallback() {
             public void onConnectionStateChange(BluetoothGatt _, int status, int newState) {
                 android.util.Log.d(TAG, "onConnectionStateChange");
 
@@ -106,12 +111,13 @@ class GattSwitcheroo implements ISwitcheroo {
             throw new IllegalStateException();
         }
 
-        parcel.writeString(this.mAddress);
+        parcel.writeParcelable(this.mBluetoohDevice, flags);
     }
 
     public static final Parcelable.Creator<GattSwitcheroo> CREATOR = new Parcelable.Creator<GattSwitcheroo>() {
-        public GattSwitcheroo createFromParcel(Parcel parcel) {
-            return new GattSwitcheroo(parcel.readString());
+        public GattSwitcheroo createFromParcel(Parcel in) {
+            BluetoothDevice device = (BluetoothDevice) in.readParcelable(BluetoothDevice.class.getClassLoader());
+            return new GattSwitcheroo(device);
         }
 
         public GattSwitcheroo[] newArray(int size) {

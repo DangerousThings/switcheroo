@@ -36,7 +36,7 @@ public final class BondsActivity extends Activity implements OnItemClickListener
     super.onCreate(savedInstanceState);
     this.setContentView(R.layout.bonds);
 
-    ISwitcheroo switcheroo = this.getIntent().getParcelableExtra(ScanActivity.EXTRA_SWITCHEROO);
+    Switcheroo switcheroo = this.getIntent().getParcelableExtra(Switcheroo.EXTRA_SWITCHEROO);
 
     this.mReadBondsTask = (ReadBondsTask) this.getLastNonConfigurationInstance();
 
@@ -136,11 +136,11 @@ public final class BondsActivity extends Activity implements OnItemClickListener
 
   private static final class ReadBondsTask extends AsyncTask<Void, Bond, Void> {
 
-    private final ISwitcheroo mSwitcheroo;
+    private final Switcheroo mSwitcheroo;
 
     private BondsAdapter mBondsAdapter;
 
-    public ReadBondsTask(ISwitcheroo switcheroo) {
+    public ReadBondsTask(Switcheroo switcheroo) {
       this.mSwitcheroo = switcheroo;
     }
 

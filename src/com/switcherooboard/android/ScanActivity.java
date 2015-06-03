@@ -28,7 +28,7 @@ public class ScanActivity extends Activity implements OnItemClickListener {
 
   private GridView mGridView;
 
-  private ResultsAdapter mResultsAdapter;
+  private ScanAdapter mScanAdapter;
 
   private ScanTask mScanTask;
 
@@ -44,18 +44,18 @@ public class ScanActivity extends Activity implements OnItemClickListener {
     this.mScanTask = (ScanTask) this.getLastNonConfigurationInstance();
 
     if (this.mScanTask != null) {
-      ArrayList<Result> results = savedInstanceState.getParcelableArrayList("results");
-      this.mResultsAdapter = new ResultsAdapter(this, android.R.layout.simple_list_item_2, results);
+      ArrayList<Switcheroo> results = savedInstanceState.getParcelableArrayList("results");
+      this.mScanAdapter = new ScanAdapter(this, android.R.layout.simple_list_item_2, results);
     } else {
       this.mScanTask = new ScanTask(adapter);
       this.mScanTask.execute(null);
-      this.mResultsAdapter = new ResultsAdapter(this, android.R.layout.simple_list_item_2);
+      this.mScanAdapter = new ScanAdapter(this, android.R.layout.simple_list_item_2);
     }
 
-    this.mScanTask.setResultsAdapter(this.mResultsAdapter);
+    this.mScanTask.setScanAdapter(this.mScanAdapter);
 
     this.mGridView = (GridView) this.findViewById(R.id.grid);
-    this.mGridView.setAdapter(mResultsAdapter);
+    this.mGridView.setAdapter(mScanAdapter);
 
     this.mGridView.setOnItemClickListener(this);
   }
@@ -64,7 +64,7 @@ public class ScanActivity extends Activity implements OnItemClickListener {
   public void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
 
-    ArrayList<Result> results = this.mResultsAdapter.getItems(); 
+    ArrayList<Switcheroo> results = this.mScanAdapter.getItems();
     outState.putParcelableArrayList("results", results);
   }
 
@@ -79,7 +79,7 @@ public class ScanActivity extends Activity implements OnItemClickListener {
 
   @Override
   public Object onRetainNonConfigurationInstance() {
-    this.mScanTask.setResultsAdapter(null);
+    this.mScanTask.setScanAdapter(null);
     return this.mScanTask;
   }
 
@@ -92,33 +92,29 @@ public class ScanActivity extends Activity implements OnItemClickListener {
     }
   }
 
-  /* */
-
-  public static final String EXTRA_SWITCHEROO = "com.switcherooboard.android.extra.SWITCHEROO";
-
   /* OnItemClickListener */
 
   @Override
   public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
     Intent intent = new Intent(ScanActivity.this, MainActivity.class);
 
-    final Result result = (Result) parent.getAdapter().getItem(position);
-    intent.putExtra(ScanActivity.EXTRA_SWITCHEROO, new GattSwitcheroo(result.device.getAddress()));
+    final Switcheroo switcheroo = (Switcheroo) parent.getAdapter().getItem(position);
+    intent.putExtra(Switcheroo.EXTRA_SWITCHEROO, switcheroo);
 
     this.startActivity(intent);
   }
 
   /* */
 
-  private static final class ResultsAdapter extends ArrayAdapter<Result> {
+  private static final class ScanAdapter extends ArrayAdapter<Switcheroo> {
 
-    private final ArrayList<Result> mObjects;
+    private final ArrayList<Switcheroo> mObjects;
 
-    public ResultsAdapter(Context context, int resource) {
-      this(context, resource, new ArrayList<Result>());
+    public ScanAdapter(Context context, int resource) {
+      this(context, resource, new ArrayList<Switcheroo>());
     }
 
-    public ResultsAdapter(Context context, int resource, ArrayList<Result> objects) {
+    public ScanAdapter(Context context, int resource, ArrayList<Switcheroo> objects) {
       super(context, resource, android.R.id.text1, objects);
       this.mObjects = objects;
     }
@@ -128,12 +124,12 @@ public class ScanActivity extends Activity implements OnItemClickListener {
       View view = super.getView(position, convertView, parent);
 
       TextView text2 = (TextView) view.findViewById(android.R.id.text2);
-      text2.setText(this.getItem(position).device.getAddress());
+      text2.setText(this.getItem(position).getAddress());
 
       return view;
     }
 
-    public ArrayList<Result> getItems() {
+    public ArrayList<Switcheroo> getItems() {
       return this.mObjects;
     }
 
@@ -141,78 +137,18 @@ public class ScanActivity extends Activity implements OnItemClickListener {
 
   /* */
 
-  private static final class Result implements Parcelable {
-
-    public final BluetoothDevice device;
-
-    public final int rssi;
-
-    public final byte[] scanRecord;
-
-    public Result(BluetoothDevice device, int rssi, byte[] scanRecord) {
-      this.device = device;
-      this.rssi = rssi;
-      this.scanRecord = scanRecord;
-    }
-
-    @Override
-    public String toString() {
-      return this.device.getName();
-    }
-
-    @Override
-    public boolean equals(Object object) {
-      String address = Result.class.cast(object).device.getAddress();
-      return this.device.getAddress().equals(address);
-    }
-
-    @Override
-    public int describeContents() {
-      return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-      dest.writeParcelable(this.device, flags);
-      dest.writeInt(this.rssi);
-      dest.writeInt(this.scanRecord.length);
-      dest.writeByteArray(this.scanRecord);
-    }
-
-    @SuppressWarnings("unused")
-    public static final Parcelable.Creator<Result> CREATOR = new Parcelable.Creator<Result>() {
-      @Override
-      public Result createFromParcel(Parcel in) {
-        BluetoothDevice device = (BluetoothDevice) in.readParcelable(BluetoothDevice.class.getClassLoader());
-
-        int rssi = in.readInt();
-
-        byte[] scanRecord = new byte[in.readInt()];
-        in.readByteArray(scanRecord);
-
-        return new Result(device, rssi, scanRecord);
-      }
-
-      @Override
-      public Result[] newArray(int size) {
-        return new Result[size];
-      }
-    };
-
-  }
-
-  private static final class ScanTask extends AsyncTask<Void, Result, Void> implements BluetoothAdapter.LeScanCallback {
+  private static final class ScanTask extends AsyncTask<Void, Switcheroo, Void> implements BluetoothAdapter.LeScanCallback {
 
     private final BluetoothAdapter mBluetoothAdapter;
 
-    private ResultsAdapter mResultsAdapter;
+    private ScanAdapter mScanAdapter;
 
     public ScanTask(BluetoothAdapter adapter) {
       this.mBluetoothAdapter = adapter;
     }
 
-    public void setResultsAdapter(ResultsAdapter adapter) {
-      this.mResultsAdapter = adapter;
+    public void setScanAdapter(ScanAdapter adapter) {
+      this.mScanAdapter = adapter;
     }
 
     @Override
@@ -232,14 +168,13 @@ public class ScanActivity extends Activity implements OnItemClickListener {
 
     @Override
     public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-      Result value = new Result(device, rssi, scanRecord);
-      this.publishProgress(value);
+      this.publishProgress(new GattSwitcheroo(device));
     }
 
     @Override
-    public void onProgressUpdate(Result... results) {
-      if (!this.mResultsAdapter.getItems().contains(results[0])) {
-        this.mResultsAdapter.add(results[0]);
+    public void onProgressUpdate(Switcheroo... results) {
+      if (!this.mScanAdapter.getItems().contains(results[0])) {
+        this.mScanAdapter.add(results[0]);
       }
     }
 

@@ -5,7 +5,7 @@ import android.os.Bundle;
 
 public class SwitcherooFragment extends Fragment implements ISwitcherooCallback {
 
-    private ISwitcheroo mSwitcheroo;
+    private Switcheroo mSwitcheroo;
 
     /* Fragment */
 
@@ -14,7 +14,7 @@ public class SwitcherooFragment extends Fragment implements ISwitcherooCallback 
         super.onCreate(savedInstanceState);
         this.setRetainInstance(true);
 
-        this.mSwitcheroo = this.getActivity().getIntent().getParcelableExtra(ScanActivity.EXTRA_SWITCHEROO);
+        this.mSwitcheroo = this.getActivity().getIntent().getParcelableExtra(Switcheroo.EXTRA_SWITCHEROO);
         this.mSwitcheroo.connect(this);
     }
 
