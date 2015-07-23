@@ -4,7 +4,7 @@ buildscript {
     }
 
     dependencies {
-        classpath group: 'com.android.tools.build', name: 'gradle', version: '0.12.2'
+        classpath group: 'com.android.tools.build', name: 'gradle', version: '1.2.3'
     }
 }
 
@@ -26,7 +26,7 @@ dependencies {
 
 android {
     compileSdkVersion 18
-    buildToolsVersion '22'
+    buildToolsVersion '22.0.1'
 
     defaultConfig {
         versionCode 1
@@ -38,7 +38,7 @@ android {
 
     buildTypes {
         release {
-            runProguard false
+            minifyEnabled false
             proguardFile getDefaultProguardFile('proguard-android.txt')
         }
     }
